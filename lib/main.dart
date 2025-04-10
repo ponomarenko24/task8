@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -6,9 +7,14 @@ void main() {
 
 List<int> items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -31,7 +37,9 @@ class MainApp extends StatelessWidget {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            items.add(100);
+            setState(() {
+              items.insert(0, 100);
+            });
           },
           child: Icon(Icons.add),
         ),
