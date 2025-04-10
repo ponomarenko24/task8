@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-List<int> items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+List<String> items = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -27,6 +27,9 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
+
+  final TextEditingController _controller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -55,27 +58,50 @@ class _MainAppState extends State<MainApp> {
     );
   }
 
+  void _addTask() {
+    final text = _controller.text.trim();
+    setState(() {
+      items.insert(0, text);
+    });
+  }
+
   Future<String?> dialogWindow(BuildContext context) {
     return showDialog<String>(
       context: context,
       builder:
           (BuildContext context) => Dialog(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
+            child: Container(
+              margin: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   const SizedBox(height: 30),
                   TextField(
-
+                    controller: _controller,
+                    decoration: InputDecoration(labelText: "Enter task here"),
                   ),
                   const SizedBox(height: 30),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Close'),
+                  Row(
+                    children: [
+                      Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Close'),
+                      ),
+                      Spacer(),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _addTask();
+                          _controller.clear();
+                        },
+                        child: const Text('Add'),
+                      ),
+                      Spacer(),
+                    ],
                   ),
                 ],
               ),
