@@ -9,11 +9,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TODO List',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const MainApp(),
-    );
+    return MaterialApp(home: const MainApp());
   }
 }
 
@@ -27,7 +23,6 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -42,11 +37,30 @@ class _MainAppState extends State<MainApp> {
           scrollDirection: Axis.vertical,
           itemCount: items.length,
           itemBuilder: (BuildContext context, int index) {
-            return Container(
-              height: 150,
-              margin: EdgeInsets.all(20),
-              color: Colors.amber,
-              child: Center(child: Text("data ${items[index]}")),
+            final item = items[index];
+            return Dismissible(
+              key: Key(item),
+              direction: DismissDirection.endToStart,
+              onDismissed: (direction) {
+                setState(() {
+                  items.removeAt(index);
+                });
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text("Deleted")));
+              },
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              child: Container(
+                height: 150,
+                margin: EdgeInsets.all(20),
+                color: Colors.amber,
+                child: Center(child: Text("data ${items[index]}")),
+              ),
             );
           },
         ),
