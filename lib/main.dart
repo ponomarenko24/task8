@@ -33,41 +33,61 @@ class _MainAppState extends State<MainApp> {
           backgroundColor: Colors.grey[300],
           title: Text("TODO List"),
         ),
-        body: ListView.builder(
-          scrollDirection: Axis.vertical,
-          itemCount: items.length,
-          itemBuilder: (BuildContext context, int index) {
-            final item = items[index];
-            return Dismissible(
-              key: Key(item),
-              direction: DismissDirection.endToStart,
-              onDismissed: (direction) {
-                setState(() {
-                  items.removeAt(index);
-                });
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text("Deleted")));
-              },
-              background: Container(
-                color: Colors.red,
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: const Icon(Icons.delete, color: Colors.white),
-              ),
-              child: Container(
-                height: 150,
-                margin: EdgeInsets.all(20),
-                color: Colors.amber,
-                child: Center(child: Text("data ${items[index]}")),
-              ),
-            );
-          },
-        ),
+        body: taskList(context),
         floatingActionButton: FloatingActionButton(
           onPressed: () => dialogWindow(context),
           child: Icon(Icons.add),
         ),
+      ),
+    );
+  }
+
+  Widget taskList(context) {
+    return ListView.builder(
+      scrollDirection: Axis.vertical,
+      itemCount: items.length,
+      itemBuilder: (BuildContext context, int index) {
+        final item = items[index];
+        return dismissSwipe(item, index);
+      },
+    );
+  }
+
+  Widget dismissSwipe(item, index) {
+    return Dismissible(
+      key: Key(item),
+      direction: DismissDirection.endToStart,
+      onDismissed: (direction) {
+        setState(() {
+          items.removeAt(index);
+        });
+      },
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      child: taskContainer(index),
+    );
+  }
+
+bool? isChecked = false;
+
+  Widget taskContainer(index) {
+    return Container(
+      height: 150,
+      margin: EdgeInsets.all(20),
+      color: Colors.amber,
+      child: Row(
+        children: [
+          Text(" ${items[index]}"),
+          Checkbox(value: isChecked, onChanged: (bool? value)  {
+            setState(() {
+              isChecked = value;
+            });
+          })
+        ],
       ),
     );
   }
@@ -77,6 +97,12 @@ class _MainAppState extends State<MainApp> {
     setState(() {
       items.insert(0, text);
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<String?> dialogWindow(BuildContext context) {
