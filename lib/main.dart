@@ -13,7 +13,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
-List<String> items = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+class Task {
+  String describe;
+  bool isChecked;
+
+  Task(this.describe, {this.isChecked = false});
+}
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -23,6 +28,8 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
+  final List<Task> _tasks = [Task("task1"), Task("task2", isChecked: true)];
+
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -33,7 +40,20 @@ class _MainAppState extends State<MainApp> {
           backgroundColor: Colors.grey[300],
           title: Text("TODO List"),
         ),
-        body: taskList(context),
+        body: ReorderableListView.builder(
+          itemCount: _tasks.length,
+          onReorder: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) newIndex--;
+              final task = _tasks.removeAt(oldIndex);
+              _tasks.insert(newIndex, task);
+            });
+          },
+          itemBuilder: (BuildContext context, int index) {
+            final task = _tasks[index];
+            return dismissSwipe(task);
+          },
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => dialogWindow(context),
           child: Icon(Icons.add),
@@ -42,24 +62,13 @@ class _MainAppState extends State<MainApp> {
     );
   }
 
-  Widget taskList(context) {
-    return ListView.builder(
-      scrollDirection: Axis.vertical,
-      itemCount: items.length,
-      itemBuilder: (BuildContext context, int index) {
-        final item = items[index];
-        return dismissSwipe(item, index);
-      },
-    );
-  }
-
-  Widget dismissSwipe(item, index) {
+  Widget dismissSwipe(task) {
     return Dismissible(
-      key: Key(item),
+      key: ValueKey(task.describe),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
         setState(() {
-          items.removeAt(index);
+          _tasks.remove(task);
         });
       },
       background: Container(
@@ -68,25 +77,46 @@ class _MainAppState extends State<MainApp> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      child: taskContainer(index),
+      child: taskContainer(task),
     );
   }
 
-bool? isChecked = false;
-
-  Widget taskContainer(index) {
-    return Container(
+  Widget taskContainer(task) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
       height: 150,
-      margin: EdgeInsets.all(20),
-      color: Colors.amber,
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
+      color: task.isChecked ? Colors.green : Colors.amber,
       child: Row(
         children: [
-          Text(" ${items[index]}"),
-          Checkbox(value: isChecked, onChanged: (bool? value)  {
-            setState(() {
-              isChecked = value;
-            });
-          })
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              transitionBuilder:
+                  (child, animation) =>
+                      FadeTransition(opacity: animation, child: child),
+              child: Text(
+                task.describe,
+                key: ValueKey<bool>(task.isChecked),
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: task.isChecked ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+          ),
+          const Spacer(),
+          Checkbox(
+            value: task.isChecked,
+            onChanged: (_) {
+              setState(() {
+                task.isChecked = task.isChecked == true ? false : true;
+              });
+            },
+          ),
         ],
       ),
     );
@@ -95,7 +125,7 @@ bool? isChecked = false;
   void _addTask() {
     final text = _controller.text.trim();
     setState(() {
-      items.insert(0, text);
+      _tasks.insert(0, Task(text));
     });
   }
 
